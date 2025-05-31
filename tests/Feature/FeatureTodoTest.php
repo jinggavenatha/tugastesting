@@ -7,78 +7,85 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\Response;
 use Tests\TestCase;
 
-class FeatureCommentTest extends TestCase
+class FeatureTodoTest extends TestCase
 {
-    public function testStoreComment()
+    public function testUpdateDataActivity()
     {
-        // 1. Cek halaman yang diakses
-        $response = $this->get(route('dashboard'));
-        $response->assertStatus(Response::HTTP_OK);
-        $response->assertSee('Write a comment');
+        // 1. Simpan task baru
+        $task = \App\Models\Task::create(['name' => 'Old Task']);
 
-        // 2. User mengirim data komentar ke server
-        $data = [
-            'content' => 'This is a test comment',
-            'item_id' => 1,
-        ];
-        $storeData = $this->post(route('comment.store'), $data);
+        // 2. Kirim permintaan update
+        $response = $this->put(route('item.update', $task->id), [
+            'item' => 'Updated Task',
+        ]);
 
-        // 3. Apakah data berhasil ditambahkan
-        $storeData->assertStatus(Response::HTTP_FOUND);
-        $this->assertDatabaseHas('comments', [
-            'content' => 'This is a test comment',
-            'item_id' => 1,
+        // 3. Apakah data berhasil diperbarui
+        $response->assertStatus(Response::HTTP_FOUND);
+        $this->assertDatabaseHas('tasks', [
+            'id' => $task->id,
+            'name' => 'Updated Task',
         ]);
 
         // 4. Redirect ke halaman dashboard
-        $storeData->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('dashboard'));
     }
 
-    public function testStoreCommentWithTags()
+    public function testStoreDataActivityWithMultipleTags()
     {
-        // 1. Cek halaman yang diakses
+        // 1. Cek halaman dashboard
         $response = $this->get(route('dashboard'));
         $response->assertStatus(Response::HTTP_OK);
-        $response->assertSee('Write a comment');
+        $response->assertSee('Enter an activity');
 
-        // 2. User mengirim data komentar dengan tag ke server
+        // 2. Kirim data dengan multiple tags
         $data = [
-            'content' => 'This comment has a tag|tag2',
-            'item_id' => 1,
+            'item' => 'Multi Tag Task|tag1,tag2',
         ];
-        $storeData = $this->post(route('comment.store'), $data);
+        $storeData = $this->post(route('item.store'), $data);
 
-        // 3. Apakah data berhasil ditambahkan
+        // 3. Cek database
         $storeData->assertStatus(Response::HTTP_FOUND);
-        $this->assertDatabaseHas('comments', [
-            'content' => 'This comment has a tag',
-            'item_id' => 1,
+        $this->assertDatabaseHas('tasks', [
+            'name' => 'Multi Tag Task',
+        ]);
+        $this->assertDatabaseHas('tags', [
+            'tag_name' => 'tag1',
         ]);
         $this->assertDatabaseHas('tags', [
             'tag_name' => 'tag2',
         ]);
 
-        // 4. Redirect ke halaman dashboard
+        // 4. Redirect
         $storeData->assertRedirect(route('dashboard'));
     }
 
-    public function testDeleteComment()
+    public function testStoreDataActivityValidationError()
     {
-        // 1. Cek halaman yang diakses
-        $response = $this->get(route('dashboard'));
-        $response->assertStatus(Response::HTTP_OK);
-        $response->assertSee('Write a comment');
+        // 1. Kirim data kosong
+        $data = [
+            'item' => '',
+        ];
+        $response = $this->post(route('item.store'), $data);
 
-        // 2. User menghapus komentar tertentu
-        $storeData = $this->delete(route('comment.destroy', ['id' => 5]));
-
-        // 3. Apakah data berhasil dihapus
-        $storeData->assertStatus(Response::HTTP_FOUND);
-        $this->assertDatabaseMissing('comments', [
-            'id' => 5,
+        // 2. Pastikan validasi gagal dan tidak masuk DB
+        $response->assertSessionHasErrors('item');
+        $this->assertDatabaseMissing('tasks', [
+            'name' => '',
         ]);
+    }
 
-        // 4. Redirect ke halaman dashboard
-        $storeData->assertRedirect(route('dashboard'));
+    public function testDashboardShowsAllTasks()
+    {
+        // 1. Tambah data dummy
+        \App\Models\Task::create(['name' => 'Task A']);
+        \App\Models\Task::create(['name' => 'Task B']);
+
+        // 2. Kunjungi dashboard
+        $response = $this->get(route('dashboard'));
+
+        // 3. Periksa isi halaman
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertSee('Task A');
+        $response->assertSee('Task B');
     }
 }

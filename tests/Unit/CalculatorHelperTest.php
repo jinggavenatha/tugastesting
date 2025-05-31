@@ -2,18 +2,18 @@
 
 namespace Tests\Unit;
 
-use App\Helpers\DiscountHelper;
+use App\Helpers\CalculatorHelper;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-class DiscountHelperTest extends TestCase
+class CalculatorHelperTest extends TestCase
 {
-    public function testCalculateDiscount()
+    public function testPerkalian()
     {
-        $this->assertEquals(90, DiscountHelper::calculate(100, 10));
+        $this->assertEquals(90, CalculatorHelper::perkalian(100, 10));
     }
 
-    public function testMultipleDiscountCalculations()
+    public function testMultiplePerkalian()
     {
         $cases = [
             [200, 20, 160],
@@ -21,28 +21,50 @@ class DiscountHelperTest extends TestCase
             [1000, 10, 900]
         ];
 
-        foreach ($cases as [$price, $discount, $expected]) {
-            $this->assertEquals($expected, DiscountHelper::calculate($price, $discount));
+        foreach ($cases as [$a, $b, $expected]) {
+            $this->assertEquals($expected, CalculatorHelper::perkalian($a, $b));
         }
     }
 
-    public function testZeroDiscount()
+    public function testAddition()
     {
-        $this->assertEquals(100, DiscountHelper::calculate(100, 0));
+        $this->assertEquals(9, CalculatorHelper::add(4, 5));
     }
 
-    #[DataProvider('discountProvider')]
-    public function testCalculateDiscountWithDataProvider($price, $discount, $expected)
+    public function testSubtraction()
     {
-        $this->assertEquals($expected, DiscountHelper::calculate($price, $discount));
+        $this->assertEquals(1, CalculatorHelper::subtract(3, 2));
     }
 
-    public static function discountProvider()
+    public function testMultipleTestCase()
+    {
+        $cases = [
+            [6, 3, 3],
+            [0, 0, 0],
+            [-1, 1, 0],
+            [10, 5, 15],
+        ];
+
+        foreach ($cases as [$a, $b, $expected]) {
+            $this->assertEquals($expected, CalculatorHelper::add($a, $b), "Failed on: $a + $b");
+        }
+    }
+
+
+    // Alternatif DRY (Dont Repeat Yourself)
+    #[DataProvider('additionProvider')]
+    public function testAdditionWithDataProvider($a, $b, $expected)
+    {
+        $this->assertEquals($expected, CalculatorHelper::add($a, $b));
+    }
+
+    public static function additionProvider()
     {
         return [
-            [100, 10, 90],
-            [250, 25, 187.5],
-            [500, 15, 425],
+            [2, 3, 5],
+            [0, 0, 0],
+            [-1, 1, 0],
+            [10, 5, 15],
         ];
     }
 }

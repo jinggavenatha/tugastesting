@@ -2,10 +2,13 @@
 
 namespace App\Helpers;
 
-use Exception;
-
 class CalculatorHelper
 {
+    public static function discount($amount, $percent)
+    {
+        return $amount - ($amount * $percent / 100);
+    }
+
     public static function add($a, $b)
     {
         return $a + $b;
@@ -14,9 +17,5 @@ class CalculatorHelper
     public static function subtract($a, $b)
     {
         return $a - $b;
-    }
-
-    public static function perkalian($a, $b){
-        return $a * $b; // ada typo harusnya *
     }
 }

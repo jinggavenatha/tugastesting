@@ -4,7 +4,6 @@ use App\Http\Controllers\CalculatorController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\LoanCalculatorController;
-use App\Models\Task;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -13,13 +12,17 @@ Route::get('/', function () {
 
 Route::get('/dashboard', [DashboardController::class, 'view'])->name('dashboard');
 
+// Routes item CRUD
 Route::post('/item', [ItemController::class, 'insert'])->name('item.store');
+Route::put('/item/{id}', [ItemController::class, 'update'])->name('item.update');
 Route::delete('/item/{id}', [ItemController::class, 'delete'])->name('item.destroy');
 
-// Calculator
-Route::get('/calculator', [CalculatorController::class, 'index']);
-Route::post('/calculator', [CalculatorController::class, 'calculate']);
+// Kalkulator Helper (sesuai unit test)
+Route::get('/calculator', [CalculatorController::class, 'index'])->name('calculator');
+Route::post('/calculate/discount', [CalculatorController::class, 'discount'])->name('calculate.discount');
+Route::post('/calculate/add', [CalculatorController::class, 'add'])->name('calculate.add');
+Route::post('/calculate/subtract', [CalculatorController::class, 'subtract'])->name('calculate.subtract');
 
-// Loan
+// Loan Calculator
 Route::get('/loan', [LoanCalculatorController::class, 'index']);
 Route::post('/loan', [LoanCalculatorController::class, 'calculate']);

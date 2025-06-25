@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 
 class ItemController extends Controller
 {
+    // Insert task dan tags baru
     public function insert(StoreItemRequest $request)
     {
         $raw = $request->input('item');
@@ -35,6 +36,38 @@ class ItemController extends Controller
         return to_route('dashboard');
     }
 
+    // Update task dan tags terkait
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'item' => 'required|string',
+        ]);
+
+        $raw = $request->input('item');
+        $mapping = $this->_mapping($raw);
+
+        $task = Task::findOrFail($id);
+        $task->name = $mapping['taskName'];
+        $task->save();
+
+        // Hapus tag lama, kemudian buat tag baru
+        Tag::where('task_id', $task->id)->delete();
+
+        $tags = explode(',', $mapping['tagString']);
+        foreach ($tags as $tagName) {
+            $tagName = trim($tagName);
+            if (!empty($tagName)) {
+                Tag::create([
+                    'tag_name' => $tagName,
+                    'task_id' => $task->id,
+                ]);
+            }
+        }
+
+        return to_route('dashboard');
+    }
+
+    // Delete task dan tags terkait (cascade delete tags harusnya di model)
     public function delete($id)
     {
         $to_delete = Task::where('id', $id)->firstOrFail();
@@ -43,7 +76,7 @@ class ItemController extends Controller
         return to_route('dashboard');
     }
 
-    // Private function
+    // Private helper untuk parsing input
     private function _mapping($raw)
     {
         $parts = explode('|', $raw);
